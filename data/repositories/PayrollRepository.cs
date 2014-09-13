@@ -3,26 +3,27 @@ using System.Data;
 using System.Collections.Generic;
 
 using ica.aps.container;
+using ica.aps.data.helpers;
 using ica.aps.data.interfaces;
 using ica.aps.data.models;
 
 namespace ica.aps.data.repositories
 {
-    public class PayrollRepository
+    public class PayrollRepository : IPayrollRepository
     {
-        public PayrollRepository(IocContainer container)
+        public PayrollRepository(IIocContainer container)
         {
 			_container = container;
         }
 
         public IList<IEmployee> GetEmployees()
         {
-			IDBFactory factory = container.Create<IDBFactory>();
+			IDBFactory factory = _container.Create<IDBFactory>();
             using (IDbConnection conn = factory.Create())
             {
                 conn.Open();
 				
-				IEmployeeRepository emprepos = container.Create<IEmployeeRepository>(conn);
+				IEmployeeRepository emprepos = _container.Create<IEmployeeRepository>(conn);
 				IList<IEmployee> employees = emprepos.GetEmployees();
 								
 				return employees;
@@ -31,7 +32,7 @@ namespace ica.aps.data.repositories
 
         public IPayroll GetPayroll(DateTime dt)
         {
-			IDBFactory factory = container.Create<IDBFactory>();
+			IDBFactory factory = _container.Create<IDBFactory>();
             using (IDbConnection conn = factory.Create())
             {
                 conn.Open();
@@ -42,19 +43,21 @@ namespace ica.aps.data.repositories
 				DateTime start = dt - new TimeSpan(offset, 0, 0, 0, 0);
                 DateTime end = start.AddDays(diff);
 
-				IPayroll payroll = new ica.Payroll.models.Payroll {
+				IPayroll payroll = new Payroll {
 					StartTDS = start,
 					EndTDS = end,
 					Employees = new List<IEmployeePayroll>()
 				};
 				
-				IEmployeeRepository emprepos = container.Create<IEmployeeRepository>(conn);
+				IEmployeeRepository emprepos = _container.Create<IEmployeeRepository>(conn);
+                IDailyGrossRepository dgr = _container.Create<IDailyGrossRepository>(conn);
+				
                 IList<IEmployee> employees = emprepos.GetEmployees();
 				foreach (IEmployee emp in employees)
 				{
                     IEmployeePayroll pr = new EmployeePayroll(emp, start);
                     //pr.Rent = emp.EffectiveRent(start);
-                    pr.Grosses = DailyGrossRepository.GetDailyGrosses(conn, emp, start, end);
+                    pr.Grosses = dgr.GetDailyGrosses(emp, start, end);
 					
 					payroll.Employees.Add(pr);
 				}
@@ -65,10 +68,12 @@ namespace ica.aps.data.repositories
 		
         public void SavePayroll(IPayroll payroll)
         {
-            using (IDbConnection conn = _factory.Create())
+			IDBFactory factory = _container.Create<IDBFactory>();
+            using (IDbConnection conn = factory.Create())
             {
                 conn.Open();
 				
+                IDailyGrossRepository dgr = _container.Create<IDailyGrossRepository>(conn);
 				foreach (IEmployeePayroll pr in payroll.Employees)
 				{
                     if (pr.Dirty)
@@ -78,9 +83,9 @@ namespace ica.aps.data.repositories
                             if (dg.Dirty)
                             {
                                 if (dg.ID == null || dg.ID.Equals(Guid.Empty))
-                                    DailyGrossRepository.InsertDailyGross(conn, pr.Employee, dg);
+                                    dgr.InsertDailyGross(pr.Employee, dg);
                                 else
-                                    DailyGrossRepository.UpdateDailyGross(conn, pr.Employee, dg);
+                                    dgr.UpdateDailyGross(pr.Employee, dg);
                                 dg.Dirty = false;
                             }
                         }
@@ -93,8 +98,7 @@ namespace ica.aps.data.repositories
         #endregion
 
         #region Private
-		private IocContainer _container;
-        private IDBFactory _factory;
+        private IIocContainer _container;
         #endregion
     }
 }

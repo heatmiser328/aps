@@ -2,74 +2,90 @@
 using System.Data;
 using System.Collections.Generic;
 
-using ica.Payroll.models.interfaces;
-using ica.Payroll.models;
-using ica.aps.data.repositories;
+using ica.aps.container;
+using ica.aps.data.helpers;
+using ica.aps.data.interfaces;
+using ica.aps.data.models;
 
 namespace ica.aps.data.repositories
 {						  
-    public static class DailyGrossRepository
+    public class DailyGrossRepository : IDailyGrossRepository
     {
-        public static IList<IDailyGross> GetDailyGrosses(IDbConnection conn, IEmployee employee, DateTime start, DateTime end)
+        public DailyGrossRepository(IIocContainer container, IDbConnection conn = null)
+        {
+			_container = container;
+			_conn = conn;
+        }
+	
+        public IList<IDailyGross> GetDailyGrosses(IEmployee employee, DateTime start, DateTime end)
         {
             IList<IDailyGross> grosses = new List<IDailyGross>();
-            using (IDbCommand cmd = conn.CreateCommand())
-            {
-				IRent r = employee.EffectiveRent(start);
-				
-                cmd.CommandText = cSelectDailyGrossesForEmployee_SQL;
-                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
-                DBHelper.AddCommandParameter(cmd, "@StartTDS", DbType.DateTime, ParameterDirection.Input, start);
-                DBHelper.AddCommandParameter(cmd, "@EndTDS", DbType.DateTime, ParameterDirection.Input, end);
+			/*using (*/IDbConnection conn = GetConnection();//)
+			{
+	            using (IDbCommand cmd = conn.CreateCommand())
+	            {
+					IRent r = employee.EffectiveRent(start);
 					
-                using (IDataReader dr = cmd.ExecuteReader())
-                {
-                    while (dr.Read())
-                    {
-                        IDailyGross dg = CreateDailyGross(dr);
-                        grosses.Add(dg);
-                    }
-                }
-            }
+	                cmd.CommandText = cSelectDailyGrossesForEmployee_SQL;
+	                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
+	                DBHelper.AddCommandParameter(cmd, "@StartTDS", DbType.DateTime, ParameterDirection.Input, start);
+	                DBHelper.AddCommandParameter(cmd, "@EndTDS", DbType.DateTime, ParameterDirection.Input, end);
+						
+	                using (IDataReader dr = cmd.ExecuteReader())
+	                {
+	                    while (dr.Read())
+	                    {
+	                        IDailyGross dg = CreateDailyGross(dr);
+	                        grosses.Add(dg);
+	                    }
+	                }
+	            }
+			}
 
             return grosses;
         }
 
-        public static void InsertDailyGross(IDbConnection conn, IEmployee employee, IDailyGross dg)
+        public void InsertDailyGross(IEmployee employee, IDailyGross dg)
         {
-            using (IDbCommand cmd = conn.CreateCommand())
-            {
-				dg.ID = Guid.NewGuid();
-				IRent r = employee.EffectiveRent(dg.GrossDate);
-				
-                cmd.CommandText = cInsertDailyGrossForEmployee_SQL;
-                DBHelper.AddCommandParameter(cmd, "@DailyGrossID", DbType.Guid, ParameterDirection.Input, dg.ID);
-                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
-                DBHelper.AddCommandParameter(cmd, "@Gross", DbType.Decimal, ParameterDirection.Input, dg.GrossPay);
-                DBHelper.AddCommandParameter(cmd, "@GrossTDS", DbType.DateTime, ParameterDirection.Input, dg.GrossDate);
-                DBHelper.AddCommandParameter(cmd, "@ModifiedBy", DbType.String, ParameterDirection.Input, dg.ModifiedBy);
-                DBHelper.AddCommandParameter(cmd, "@ModifiedTDS", DbType.DateTime, ParameterDirection.Input, dg.Modified);
+			/*using (*/IDbConnection conn = GetConnection();//)
+			{
+	            using (IDbCommand cmd = conn.CreateCommand())
+	            {
+					dg.ID = Guid.NewGuid();
+					IRent r = employee.EffectiveRent(dg.GrossDate);
 					
-				cmd.ExecuteNonQuery();
-            }
+	                cmd.CommandText = cInsertDailyGrossForEmployee_SQL;
+	                DBHelper.AddCommandParameter(cmd, "@DailyGrossID", DbType.Guid, ParameterDirection.Input, dg.ID);
+	                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
+	                DBHelper.AddCommandParameter(cmd, "@Gross", DbType.Decimal, ParameterDirection.Input, dg.GrossPay);
+	                DBHelper.AddCommandParameter(cmd, "@GrossTDS", DbType.DateTime, ParameterDirection.Input, dg.GrossDate);
+	                DBHelper.AddCommandParameter(cmd, "@ModifiedBy", DbType.String, ParameterDirection.Input, dg.ModifiedBy);
+	                DBHelper.AddCommandParameter(cmd, "@ModifiedTDS", DbType.DateTime, ParameterDirection.Input, dg.Modified);
+						
+					cmd.ExecuteNonQuery();
+	            }
+			}
         }
 	
-        public static void UpdateDailyGross(IDbConnection conn, IEmployee employee, IDailyGross dg)
+        public void UpdateDailyGross(IEmployee employee, IDailyGross dg)
         {
-            using (IDbCommand cmd = conn.CreateCommand())
-            {
-				IRent r = employee.EffectiveRent(dg.GrossDate);
-				
-                cmd.CommandText = cUpdateDailyGrossForEmployee_SQL;
-                DBHelper.AddCommandParameter(cmd, "@DailyGrossID", DbType.Guid, ParameterDirection.Input, dg.ID);
-                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
-                DBHelper.AddCommandParameter(cmd, "@Gross", DbType.Decimal, ParameterDirection.Input, dg.GrossPay);
-                DBHelper.AddCommandParameter(cmd, "@GrossTDS", DbType.DateTime, ParameterDirection.Input, dg.GrossDate);
-                DBHelper.AddCommandParameter(cmd, "@ModifiedBy", DbType.String, ParameterDirection.Input, dg.ModifiedBy);
-                DBHelper.AddCommandParameter(cmd, "@ModifiedTDS", DbType.DateTime, ParameterDirection.Input, dg.Modified);
+			/*using (*/IDbConnection conn = GetConnection();//)
+			{
+	            using (IDbCommand cmd = conn.CreateCommand())
+	            {
+					IRent r = employee.EffectiveRent(dg.GrossDate);
 					
-				cmd.ExecuteNonQuery();
-            }
+	                cmd.CommandText = cUpdateDailyGrossForEmployee_SQL;
+	                DBHelper.AddCommandParameter(cmd, "@DailyGrossID", DbType.Guid, ParameterDirection.Input, dg.ID);
+	                DBHelper.AddCommandParameter(cmd, "@RentID", DbType.Guid, ParameterDirection.Input, r.ID);
+	                DBHelper.AddCommandParameter(cmd, "@Gross", DbType.Decimal, ParameterDirection.Input, dg.GrossPay);
+	                DBHelper.AddCommandParameter(cmd, "@GrossTDS", DbType.DateTime, ParameterDirection.Input, dg.GrossDate);
+	                DBHelper.AddCommandParameter(cmd, "@ModifiedBy", DbType.String, ParameterDirection.Input, dg.ModifiedBy);
+	                DBHelper.AddCommandParameter(cmd, "@ModifiedTDS", DbType.DateTime, ParameterDirection.Input, dg.Modified);
+						
+					cmd.ExecuteNonQuery();
+	            }
+			}
         }
 		
         #region Implementation
@@ -87,6 +103,17 @@ namespace ica.aps.data.repositories
             return dg;
         }
 
+		private IDbConnection GetConnection()
+		{
+			if (_conn == null)
+			{
+				IDBFactory factory = _container.Create<IDBFactory>();
+    	        _conn = factory.Create();
+				_conn.Open();
+			}
+			return _conn;
+		}
+		
         #endregion
 
         #region SQL
@@ -113,6 +140,11 @@ VALUES
 WHERE
 	[DailyGrossID] = @DailyGrossID";
 	
+        #endregion
+		
+        #region Private
+        private IIocContainer _container;
+		private IDbConnection _conn;
         #endregion
     }
 }

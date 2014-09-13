@@ -49,6 +49,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SqlServerCe, Version=3.5.1.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
     <Reference Include="System.Xml.Linq" />
@@ -58,35 +59,32 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="aps.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>aps.edmx</DependentUpon>
-    </Compile>
+    <Compile Include="container\IocContainer.cs" />
+    <Compile Include="factory\DBFactory.cs" />
+    <Compile Include="factory\DBHelper.cs" />
+    <Compile Include="interfaces\IDailyGross.cs" />
+    <Compile Include="interfaces\IDailyGrossRepository.cs" />
+    <Compile Include="interfaces\IDBFactory.cs" />
+    <Compile Include="interfaces\IEmployee.cs" />
+    <Compile Include="interfaces\IEmployeePayroll.cs" />
+    <Compile Include="interfaces\IEmployeeRepository.cs" />
+    <Compile Include="interfaces\IIocContainer.cs" />
+    <Compile Include="interfaces\IPayroll.cs" />
+    <Compile Include="interfaces\IPayrollRepository.cs" />
+    <Compile Include="interfaces\IRent.cs" />
+    <Compile Include="interfaces\IRentRepository.cs" />
+    <Compile Include="models\DailyGross.cs" />
+    <Compile Include="models\Employee.cs" />
+    <Compile Include="models\EmployeePayroll.cs" />
+    <Compile Include="models\Payroll.cs" />
+    <Compile Include="models\Rent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="repositories\DailyGrossRepository.cs" />
+    <Compile Include="repositories\EmployeeRepository.cs" />
+    <Compile Include="repositories\PayrollRepository.cs" />
+    <Compile Include="repositories\RentRepository.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="container\" />
-    <Folder Include="db\" />
-    <Folder Include="factory\" />
-    <Folder Include="interfaces\" />
-    <Folder Include="models\" />
-    <Folder Include="repositories\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="aps.sdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <EntityDeploy Include="aps.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>aps.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.Config" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
       <Visible>False</Visible>
@@ -113,6 +111,10 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="db\aps_schema.sqlce" />
+    <None Include="db\aps_seed.sqlce" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

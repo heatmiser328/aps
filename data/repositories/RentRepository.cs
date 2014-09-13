@@ -2,37 +2,47 @@
 using System.Data;
 using System.Collections.Generic;
 
-using ica.Payroll.models.interfaces;
-using ica.Payroll.models;
-using ica.aps.data.repositories;
+using ica.aps.container;
+using ica.aps.data.helpers;
+using ica.aps.data.interfaces;
+using ica.aps.data.models;
 
 namespace ica.aps.data.repositories
 {						  
-    public static class RentRepository
+    public class RentRepository : IRentRepository
     {
-        public static IList<IRent> GetRents(IDbConnection conn, IEmployee employee)
+        public RentRepository(IIocContainer container, IDbConnection conn = null)
+        {
+			_container = container;
+			_conn = conn;
+        }
+	
+        public IList<IRent> GetRents(IEmployee employee)
         {
             IList<IRent> rents = new List<IRent>();
-            using (IDbCommand cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = cSelectRentsForEmployee_SQL;
-                DBHelper.AddCommandParameter(cmd, "@EmployeeID", DbType.Guid, ParameterDirection.Input, employee.ID);
-					
-                using (IDataReader dr = cmd.ExecuteReader())
-                {
-                    while (dr.Read())
-                    {
-                        IRent r = CreateRent(dr);
-                        rents.Add(r);
-                    }
-                }
-            }
+			/*using (*/IDbConnection conn = GetConnection();//)
+			{
+	            using (IDbCommand cmd = conn.CreateCommand())
+	            {
+	                cmd.CommandText = cSelectRentsForEmployee_SQL;
+	                DBHelper.AddCommandParameter(cmd, "@EmployeeID", DbType.Guid, ParameterDirection.Input, employee.ID);
+						
+	                using (IDataReader dr = cmd.ExecuteReader())
+	                {
+	                    while (dr.Read())
+	                    {
+	                        IRent r = CreateRent(dr);
+	                        rents.Add(r);
+	                    }
+	                }
+	            }
+			}
 
             return rents;
         }
 
         #region Implementation
-        private static IRent CreateRent(IDataReader dr)
+        private IRent CreateRent(IDataReader dr)
         {
             IRent r = new Rent();
 			
@@ -45,6 +55,17 @@ namespace ica.aps.data.repositories
             return r;
         }
 
+		private IDbConnection GetConnection()
+		{
+			if (_conn == null)
+			{
+				IDBFactory factory = _container.Create<IDBFactory>();
+    	        _conn = factory.Create();
+				_conn.Open();
+			}
+			return _conn;
+		}
+		
         #endregion
 
         #region SQL
@@ -54,7 +75,11 @@ namespace ica.aps.data.repositories
 FROM Rent
 WHERE EmployeeID = @EmployeeID
 ORDER BY EffectiveTDS DESC";
-
+        #endregion
+		
+        #region Private
+        private IIocContainer _container;
+		private IDbConnection _conn;
         #endregion
     }
 }

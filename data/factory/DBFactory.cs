@@ -7,6 +7,8 @@ using System.Data.SqlClient;
 using System.Data.SqlServerCe;
 
 
+using ica.aps.data.interfaces;
+
 namespace ica.aps.data.factory
 {
     /// <summary>
